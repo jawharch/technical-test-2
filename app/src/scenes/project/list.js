@@ -35,7 +35,7 @@ const ProjectList = () => {
 
   return (
     <div className="w-full p-2 md:!px-8">
-      <Create onChangeSearch={handleSearch} />
+      <Create onChangeSearch={handleSearch} setProjects={setProjects} />
       <div className="py-3">
         {activeProjects.map((hit) => {
           return (
@@ -51,6 +51,19 @@ const ProjectList = () => {
                   </div>
                 </div>
               </div>
+              <div className="flex justify-between flex-1">
+        
+
+
+              <div className="w-full md:w-[50%] border-r border-[#E5EAEF] pl-[10px]">
+                <span className="text-[14px] font-medium text-[#212325]">{hit.description ? hit.description : ""}</span>
+              </div>
+              <div className="w-full md:w-[25%]  px-[10px]">
+                <span className="text-[16px] font-medium text-[#212325]">Budget consumed {hit.paymentCycle === "MONTHLY" && "this month"}:</span>
+                <Budget project={hit}/>
+              </div>
+              
+              
               <div className="w-full md:w-[50%] border-r border-[#E5EAEF] pl-[10px]">
                 <span className="text-[14px] font-medium text-[#212325]">{hit.description ? hit.description : ""}</span>
               </div>
@@ -58,7 +71,10 @@ const ProjectList = () => {
                 <span className="text-[16px] font-medium text-[#212325]">Budget consumed {hit.paymentCycle === "MONTHLY" && "this month"}:</span>
                 <Budget project={hit} />
               </div>
-            </div>
+             
+              </div>
+              </div>
+           
           );
         })}
       </div>
@@ -80,19 +96,21 @@ const Budget = ({ project }) => {
       }
       const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
       const { data } = await api.get(`/activity?projectId=${encodeURIComponent(project._id)}&date=${dateQuery}${date.getTime()}`);
+      console.log(data)
       setActivities(data);
     })();
   }, []);
 
   const total = activities.reduce((acc, cur) => acc + cur.value, 0);
   const budget_max_monthly = project.budget_max_monthly;
+
   const width = (100 * total) / budget_max_monthly || 0;
 
   if (!project.budget_max_monthly) return <div className="mt-2 text-[24px] text-[#212325] font-semibold">{total.toFixed(2)}€</div>;
   return <ProgressBar percentage={width} max={budget_max_monthly} value={total} />;
 };
 
-const Create = ({ onChangeSearch }) => {
+const Create = ({ onChangeSearch,setProjects }) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -143,6 +161,7 @@ const Create = ({ onChangeSearch }) => {
                 try {
                   values.status = "active";
                   const res = await api.post("/project", values);
+                  setProjects((prevProjects) => [...prevProjects, res.data]);
                   if (!res.ok) throw res;
                   toast.success("Created!");
                   setOpen(false);

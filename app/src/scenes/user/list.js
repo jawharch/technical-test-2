@@ -1,10 +1,11 @@
-import { Formik } from "formik";
+import { Formik,Field } from "formik";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useHistory } from "react-router-dom";
 import Loader from "../../components/loader";
 import LoadingButton from "../../components/loadingButton";
 import api from "../../services/api";
+import validator from "validator";
 
 const NewList = () => {
   const [users, setUsers] = useState(null);
@@ -25,6 +26,7 @@ const NewList = () => {
     setProjects(res.data);
   }
 
+
   useEffect(() => {
     if (!users) return;
     setUsersFiltered(
@@ -36,7 +38,11 @@ const NewList = () => {
     );
   }, [users, filter]);
 
+
   if (!usersFiltered) return <Loader />;
+
+  
+
 
   return (
     <div>
@@ -71,7 +77,7 @@ const NewList = () => {
               </span>
             </div>
           </div>
-          <Create />
+          <Create/>
         </div>
         <div className="overflow-x-auto">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 py-6 gap-5 ">
@@ -89,6 +95,23 @@ const Create = () => {
   const [open, setOpen] = useState(false);
 
   const history = useHistory();
+  const validateForm = (values) => {
+    const errors = {};
+    if (!values.name) {
+      errors.name = 'Name is required';
+    }
+    if (!values.email) {
+      errors.email = 'Email is required';
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
+      errors.email = 'Invalid email address';
+    }
+    if (!values.password) {
+      errors.password = 'Password is required';
+    }
+    return errors;
+  };
+
+    
 
   return (
     <div style={{ marginBottom: 10 }}>
@@ -105,7 +128,11 @@ const Create = () => {
               e.stopPropagation();
             }}>
             <Formik
-              initialValues={{}}
+
+               initialValues={{ email: "", password: "",name:"" }}
+               validate={validateForm}
+              
+        
               onSubmit={async (values, { setSubmitting }) => {
                 try {
                   values.status = "active";
@@ -122,32 +149,46 @@ const Create = () => {
                 }
                 setSubmitting(false);
               }}>
-              {({ values, handleChange, handleSubmit, isSubmitting }) => (
+              {({ values, handleChange, handleSubmit, isSubmitting,errors,touched,isValid, dirty }) => (
                 <React.Fragment>
-                  <div>
-                    <div className="flex justify-between flex-wrap">
-                      <div className="w-full md:w-[48%] mt-2">
-                        <div className="text-[14px] text-[#212325] font-medium	">Name</div>
-                        <input className="projectsInput text-[14px] font-normal text-[#212325] rounded-[10px]" name="username" value={values.username} onChange={handleChange} />
-                      </div>
-                      <div className="w-full md:w-[48%] mt-2">
-                        <div className="text-[14px] text-[#212325] font-medium	">Email</div>
-                        <input className="projectsInput text-[14px] font-normal text-[#212325] rounded-[10px]" name="email" value={values.email} onChange={handleChange} />
-                      </div>
-                    </div>
-                    <div className="flex justify-between flex-wrap mt-3">
-                      {/* Password */}
-                      <div className="w-full md:w-[48%] mt-2">
-                        <div className="text-[14px] text-[#212325] font-medium	">Password</div>
-                        <input className="projectsInput text-[14px] font-normal text-[#212325] rounded-[10px]" name="password" value={values.password} onChange={handleChange} />
-                      </div>
-                    </div>
-                  </div>
+               <div>
+            <div className="flex justify-between flex-wrap">
+              <div className="w-full md:w-[48%] mt-2">
+                <div className="text-[14px] text-[#212325] font-medium">Name</div>
+                <Field
+                  className="projectsInput text-[14px] font-normal text-[#212325] rounded-[10px]"
+                  name="name"
+                />
+                {errors.name && touched.name && <div className="text-[12px] ml-1 text-[#FD3131]">{errors.name}</div>}
+              </div>
+              <div className="w-full md:w-[48%] mt-2">
+                <div className="text-[14px] text-[#212325] font-medium">Email</div>
+                <Field
+                  className="projectsInput text-[14px] font-normal text-[#212325] rounded-[10px]"
+                  name="email"
+                />
+                {errors.email && touched.email && <div className="text-[12px] ml-1  text-[#FD3131]">{errors.email}</div>}
+              </div>
+            </div>
+            <div className="flex justify-between flex-wrap mt-3">
+              {/* Password */}
+              <div className="w-full md:w-[48%] mt-2">
+                <div className="text-[14px] text-[#212325] font-medium">Password</div>
+                <Field
+                  className="projectsInput text-[14px] font-normal text-[#212325] rounded-[10px]"
+                  type="password"
+                  name="password"
+                />
+                {errors.password && touched.password && <div className="text-[12px] ml-1  text-[#FD3131]">{errors.password}</div>}
+              </div>
+            </div>
+          </div>
 
                   <br />
                   <LoadingButton
-                    className="mt-[1rem]  bg-[#0560FD] text-[16px] font-medium text-[#FFFFFF] py-[12px] px-[22px] rounded-[10px]"
+                    className="mt-[1rem]  bg-[#0560FD] text-[16px] font-medium text-[#FFFFFF] py-[12px] px-[22px] rounded-[10px] disabled: cursor-not-allowed disabled:bg-[#7d8592] cursor-pointer "
                     loading={isSubmitting}
+                    disabled={!(isValid && dirty)}
                     onClick={handleSubmit}>
                     Save
                   </LoadingButton>

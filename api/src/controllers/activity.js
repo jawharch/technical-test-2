@@ -9,6 +9,7 @@ const SERVER_ERROR = "SERVER_ERROR";
 
 router.get("/", passport.authenticate("user", { session: false }), async (req, res) => {
   try {
+    
     const query = {};
     if (req.query.userId) query.user = req.query.userId;
     if (req.query.projectId) query.projectId = req.query.projectId;
